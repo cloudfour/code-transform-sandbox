@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "target": "esnext",
+    "composite": true,
+    "incremental": true,
+    "outDir": "./dist",
+    "rootDir": "./packages"
+  }
+}

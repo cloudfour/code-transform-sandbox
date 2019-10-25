@@ -1,0 +1,5 @@
+{
+  "files": [],
+  "extends": "./tsconfig.settings.json",
+  "references": [{ "path": "./packages/core" }]
+}

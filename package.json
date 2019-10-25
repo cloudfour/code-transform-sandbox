@@ -1,0 +1,15 @@
+{
+  "name": "code-transform-sandbox",
+  "scripts": {
+    "type": "tsc -b",
+    "type:watch": "tsc -b -w",
+    "check-lint": "eslint --ignore-path .gitignore --ext .js,.ts,.tsx . && prettier --list-different --ignore-path .gitignore \"**/*.{j,t}s{x,}\"",
+    "lint": "eslint --ignore-path .gitignore --fix --ext .js,.ts,.tsx . && prettier --write --ignore-path .gitignore \"**/*.{j,t}s{x,}\""
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^6.5.1",
+    "eslint-plugin-caleb": "^7.0.0",
+    "typescript": "3.7.1-rc"
+  }
+}
