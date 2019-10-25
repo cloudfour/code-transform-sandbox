@@ -1,10 +1,7 @@
 {
-  "extends": ["plugin:caleb/recommended"],
+  "extends": ["plugin:caleb/recommended", "plugin:caleb/preact"],
   "parserOptions": {
     "project": ["./tsconfig.json", "./packages/*/tsconfig.json"]
   },
-  "rules": {
-    "caleb/unicorn/catch-error-name": "off",
-    "caleb/shopify/prefer-early-return": "off"
-  }
+  "rules": {}
 }

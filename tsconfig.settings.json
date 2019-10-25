@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
     "strict": true,
+    "jsx": "react",
+    "jsxFactory": "h",
+
     "emitDeclarationOnly": true,
     "declarationMap": true,
     "target": "esnext",
     "composite": true,
     "incremental": true,
     "outDir": "./dist",
-    "rootDir": "./packages"
+    "rootDir": "./packages",
+    "moduleResolution": "node"
   }
 }
