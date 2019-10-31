@@ -1,5 +1,11 @@
 {
   "files": [],
   "extends": "./tsconfig.settings.json",
-  "references": [{ "path": "./packages/core" }]
+  "references": [
+    { "path": "./builder" },
+    { "path": "./packages/core" },
+    { "path": "./packages/babel-worker" },
+    { "path": "./packages/transformer-babel" },
+    { "path": "./packages/transformer-terser" }
+  ]
 }

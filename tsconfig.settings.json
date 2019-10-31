@@ -3,6 +3,7 @@
     "strict": true,
     "jsx": "react",
     "jsxFactory": "h",
+    "lib": ["esnext", "dom"],
 
     "emitDeclarationOnly": true,
     "declarationMap": true,
@@ -11,6 +12,8 @@
     "incremental": true,
     "outDir": "./dist",
     "rootDir": "./packages",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "module": "esnext",
+    "noEmitOnError": false
   }
 }

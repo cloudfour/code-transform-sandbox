@@ -1,7 +1,14 @@
 {
   "extends": ["plugin:caleb/recommended", "plugin:caleb/preact"],
   "parserOptions": {
-    "project": ["./tsconfig.json", "./packages/*/tsconfig.json"]
+    "project": [
+      "./tsconfig.json",
+      "./packages/*/tsconfig.json",
+      "./builder/tsconfig.json"
+    ]
   },
-  "rules": {}
+  "rules": {
+    "no-process-exit": "off",
+    "caleb/unicorn/no-process-exit": "off"
+  }
 }

@@ -1,5 +1,9 @@
 {
   "include": ["**/*.ts", "**/*.tsx"],
   "extends": "../../tsconfig.settings.json",
-  "references": []
+  "references": [
+    { "path": "../transformer-terser" },
+    { "path": "../transformer-babel" },
+    { "path": "../types" }
+  ]
 }

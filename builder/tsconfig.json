@@ -1,0 +1,13 @@
+{
+  "include": ["**/*.ts"],
+  "extends": "../tsconfig.settings.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "esModuleInterop": true,
+    "emitDeclarationOnly": false,
+    "composite": true,
+    "declarationMap": false,
+    "module": "commonjs"
+  }
+}
