@@ -1,5 +1,0 @@
-{
-  "include": ["**/*.ts", "**/*.tsx"],
-  "extends": "../../tsconfig.settings.json",
-  "references": []
-}

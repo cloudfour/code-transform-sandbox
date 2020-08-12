@@ -1,5 +1,0 @@
-{
-  "include": ["**/*.ts", "**/*.tsx"],
-  "extends": "../../tsconfig.settings.worker.json",
-  "references": [{ "path": "../types" }]
-}

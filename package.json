@@ -1,45 +1,27 @@
 {
   "name": "code-transform-sandbox",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
   "scripts": {
-    "type": "tsc -b",
-    "type:watch": "tsc -b -w",
-    "check-lint": "eslint --ignore-path .gitignore --ext .js,.ts,.tsx . && prettier --list-different --ignore-path .gitignore \"**/*.{j,t}s{x,}\"",
-    "lint": "eslint --ignore-path .gitignore --fix --ext .js,.ts,.tsx . && prettier --write --ignore-path .gitignore \"**/*.{j,t}s{x,}\"",
-    "build": "node builder/dist",
-    "watch": "node builder/dist --watch"
+    "check-lint": "eslint . && prettier --check .",
+    "lint": "eslint --fix . && prettier --write ."
   },
-  "dependencies": {
-    "preact": "^10.0.1"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/calebeby/code-transform-sandbox.git"
   },
-  "engines": {
-    "node": ">=12"
+  "keywords": [],
+  "author": "Caleb Eby",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/calebeby/code-transform-sandbox/issues"
   },
+  "homepage": "https://github.com/calebeby/code-transform-sandbox#readme",
   "devDependencies": {
-    "@babel/core": "^7.6.4",
-    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
-    "@babel/plugin-transform-react-jsx": "^7.3.0",
-    "@babel/preset-typescript": "^7.6.0",
-    "@babel/standalone": "^7.6.4",
-    "@parcel/watcher": "^2.0.0-alpha.3",
-    "@types/babel__core": "^7.1.3",
-    "@types/node": "^12.11.7",
-    "ansi-escapes": "^4.2.1",
-    "comlink": "^4.0.5",
-    "eslint": "^6.5.1",
-    "eslint-plugin-caleb": "^7.0.0",
-    "figures": "^3.1.0",
-    "globrex": "^0.1.2",
-    "kleur": "^3.0.3",
-    "loud-rejection": "^2.2.0",
-    "mri": "^1.1.4",
-    "prettier": "^1.18.2",
-    "rollup": "^1.25.2",
-    "rollup-plugin-babel": "^4.3.3",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "sirv-cli": "^0.4.5",
-    "terser": "^4.3.9",
-    "tiny-glob": "^0.2.6",
-    "typescript": "3.7.1-rc",
-    "wrap-ansi": "^6.1.0"
+    "eslint": "^7.6.0",
+    "eslint-plugin-caleb": "^10.0.2",
+    "prettier": "^2.0.5",
+    "typescript": "^3.9.7"
   }
 }
