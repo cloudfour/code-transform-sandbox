@@ -1,0 +1,9 @@
+{
+  "name": "transformer-terser",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {},
+  "keywords": [],
+  "author": "Caleb Eby",
+  "license": "MIT"
+}
