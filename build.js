@@ -4,71 +4,78 @@ import linaria from 'linaria/rollup.js'
 import css from 'rollup-plugin-css-only'
 import mri from 'mri'
 import * as fs from 'fs'
+import * as path from 'path'
 import * as rollup from 'rollup'
+import json from '@rollup/plugin-json'
 import { terser } from 'rollup-plugin-terser'
 
 import babelConfig from './babel.config.cjs'
 
-const allPackages = fs.readdirSync('packages')
+const packagesFolder = path.join(process.cwd(), 'packages')
+const allPackages = fs.readdirSync(packagesFolder)
 
-const extensions = ['.js', '.ts', '.tsx']
+const extensions = ['.mjs', '.js', '.ts', '.tsx']
 
 /** @returns {import('rollup').Plugin} */
 const customResolver = () => {
   return {
     name: 'custom-resolver',
-    resolveId(source) {
-      if (allPackages.includes(source)) {
-        return { external: true, id: `./${source}.js` }
-      }
+    async resolveId(source, importer) {
+      if (!allPackages.includes(source) || !importer) return
+      const relative = path.join(
+        path.relative(path.dirname(importer), packagesFolder),
+        source,
+      )
+      return this.resolve(relative, importer, { skipSelf: true })
     },
   }
 }
 
-/** @type {Record<string, import('rollup').RollupOptions>} */
-const overrides = {
-  ui: {
-    input: {
-      ui: 'packages/ui',
-    },
-    plugins: [
-      customResolver(),
-      nodeResolve({ extensions }),
-      linaria({ sourceMap: false }),
-      css({ output: 'dist/styles.css' }),
-      // @ts-ignore
-      babel.babel({ extensions, babelHelpers: 'bundled' }),
-    ],
-    output: {
-      dir: 'dist',
-    },
+/** @type {import('rollup').RollupOptions} */
+const uiConfig = {
+  input: {
+    ui: 'packages/ui',
+  },
+  plugins: [
+    customResolver(),
+    nodeResolve({ extensions }),
+    linaria({ sourceMap: false }),
+    css({ output: 'dist/styles.css' }),
+    // @ts-ignore
+    babel.babel({ extensions, babelHelpers: 'bundled' }),
+  ],
+  output: {
+    dir: 'dist',
   },
 }
+
 const main = async () => {
   const args = mri(process.argv.slice(2), { boolean: ['watch'] })
   const isWatch = Boolean(args.watch)
-  if (args._.length === 0) {
-    throw new Error('specify which packages to build')
-  }
-  const packagesToBuild = args._.includes('all') ? allPackages : args._
+  const packagesToBuild = args._.length > 0 ? args._ : ['ui']
   const configs = packagesToBuild.map((packageName) => {
-    if (overrides[packageName]) return overrides[packageName]
     /** @type {import('rollup').RollupOptions} */
-    const config = {
-      input: { [packageName]: `packages/${packageName}` },
-      plugins: [
-        nodeResolve({ extensions }),
-        // @ts-ignore
-        babel.babel({
-          extensions,
-          babelHelpers: 'bundled',
-          ...babelConfig,
-          plugins: [...babelConfig.plugins, 'babel-plugin-un-cjs'],
-        }),
-        terser({ module: true, ecma: 2020, compress: { passes: 500 } }),
-      ],
-      output: { dir: 'dist' },
-    }
+    const config =
+      packageName === 'ui'
+        ? uiConfig
+        : {
+            input: { [packageName]: `packages/${packageName}/transform` },
+            plugins: [
+              customResolver(),
+              nodeResolve({ extensions }),
+              json(),
+              // @ts-ignore
+              babel.babel({
+                extensions,
+                babelHelpers: 'bundled',
+                ...babelConfig,
+                plugins: [...babelConfig.plugins, 'babel-plugin-un-cjs'],
+                configFile: false,
+              }),
+              terser({ module: true, ecma: 2020, compress: { passes: 5 } }),
+            ],
+            output: { dir: 'dist' },
+          }
     return config
   })
 
@@ -81,11 +88,12 @@ const main = async () => {
         const duration = `${Math.round(event.duration / 100) / 10}s`
         console.log(`finished build (${duration}):`, event.input)
       } else if (event.code === 'ERROR') {
+        const errorMsg = event.error.frame
+          ? `${event.error.frame}\n\n${event.error.message}`
+          : event.error
         console.log(`Build failed:
 
-${event.error.frame}
-
-${event.error.message}`)
+${errorMsg}`)
       }
     })
   } else {

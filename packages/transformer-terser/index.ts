@@ -1,23 +1,19 @@
-import { minify, MinifyOptions } from 'terser/main'
+import { MinifyOptions } from 'terser/main'
+import { Transformer } from '../../transformer'
+import * as Comlink from 'comlink'
+import { TerserWorker } from './transform'
 
-export const adapter: Adapter<MinifyOptions> = {
+export const transformer: Transformer<MinifyOptions> = {
   name: 'Terser',
   version: '5.0.0',
-  async transform(input, options) {
-    try {
-      const result = await minify(input, options)
-      return { code: result.code as string }
-    } catch (error) {
-      if (error.line !== undefined && error.col !== undefined) {
-        return {
-          error: {
-            message: error.message,
-            line: error.line,
-            column: error.col,
-          },
-        }
-      }
-      return { error }
-    }
+  defaultOptions: {
+    module: true,
+    ecma: 2020,
+    compress: {
+      passes: 3,
+      unsafe: true,
+    },
   },
+  getTransformer: () =>
+    Comlink.wrap<TerserWorker>(new Worker('/transformer-terser.js')).transform,
 }

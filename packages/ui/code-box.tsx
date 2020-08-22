@@ -1,11 +1,9 @@
 import { h } from 'preact'
 import { css } from 'linaria'
 import { codeFonts, colors } from './colors'
+import { Card } from './card'
 
 const codeBoxStyle = css`
-  box-shadow: 2px 2px 19px 2px black;
-  border-radius: 0.5rem;
-  overflow: hidden;
   display: grid;
   grid-template-rows: auto 1fr;
 `
@@ -34,18 +32,39 @@ const titleStyle = css`
 
 export const CodeBox = ({ code, onChange, title, disabled = false }: Props) => {
   return (
-    <div class={codeBoxStyle}>
+    <Card class={codeBoxStyle}>
       <div class={titleStyle}>{title}</div>
       <textarea
         class={textareaStyle}
         spellcheck={false}
         disabled={disabled}
+        onKeyDown={(e) => {
+          const el = e.currentTarget
+          if (e.key === 'Escape') {
+            // TODO: handle better
+            el.blur()
+          } else if (e.key === 'Tab') {
+            // Make tab key insert two spaces
+            e.preventDefault()
+            const start = el.selectionStart
+            const end = el.selectionEnd
+            // something is selected, ignore
+            // TODO: indent selected lines?
+            if (start !== end) return
+            const tab = '  '
+            el.value = el.value.slice(0, start) + tab + el.value.slice(end)
+
+            el.dispatchEvent(new InputEvent('input'))
+
+            el.selectionEnd = end + tab.length
+          }
+        }}
         onInput={(e) => {
           onChange?.(e.currentTarget.value)
         }}
       >
         {code}
       </textarea>
-    </div>
+    </Card>
   )
 }
