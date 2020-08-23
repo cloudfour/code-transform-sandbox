@@ -74,9 +74,8 @@ export const CodeBox = ({
         onInput={(e) => {
           onChange?.(e.currentTarget.value)
         }}
-      >
-        {code}
-      </textarea>
+        value={code}
+      />
     </Card>
   )
 }

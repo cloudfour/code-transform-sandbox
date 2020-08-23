@@ -114,7 +114,7 @@ const App = () => {
   return (
     <div class={appStyle}>
       <div class={codeViewerStyle}>
-        <CodeBox title="Input" code={initialCode} onChange={setInputCode} />
+        <CodeBox title="Input" code={inputCode} onChange={setInputCode} />
         {selectedTransformer && (
           <CodeBox
             title={`Settings for ${selectedTransformer.transformer.name}`}
@@ -130,7 +130,7 @@ const App = () => {
                     options: parsed,
                   }
                 setProcessor(createProcessor(clonedTransforms))
-              } catch (e) {}
+              } catch {}
             }}
           />
         )}
