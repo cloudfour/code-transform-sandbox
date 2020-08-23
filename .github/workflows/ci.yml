@@ -1,0 +1,49 @@
+name: CI
+
+on: [push, pull_request]
+
+build_setup: &build-setup
+  runs-on: ubuntu-latest
+  strategy:
+    matrix:
+      node-version: [14.x]
+
+jobs:
+  Build:
+    <<: *build-setup
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+
+  Lint:
+    <<: *build-setup
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Dependencies
+        run: npm ci
+      - name: Lint Check
+        run: npm run check-lint
+
+  Typecheck:
+    <<: *build-setup
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Dependencies
+        run: npm ci
+      - name: Type Check
+        run: npm run type
