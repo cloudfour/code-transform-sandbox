@@ -14,7 +14,9 @@ export type TransformFunction<Options> = (
 export interface Transformer<Options extends {}> {
   name: string
   version: string
-  getTransformer: () => TransformFunction<Options>
+  getTransformer: () =>
+    | TransformFunction<Options>
+    | Promise<TransformFunction<Options>>
   defaultOptions: Options
   cachedTransformer?: TransformFunction<Options>
 }

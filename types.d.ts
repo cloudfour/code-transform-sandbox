@@ -91,3 +91,5 @@ declare module 'mitt' {
   function mitt<Events extends EventMap>(): Emitter<Events>
   export default mitt
 }
+
+declare const Comlink: typeof import('comlink')

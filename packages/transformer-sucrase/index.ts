@@ -12,7 +12,10 @@ export const transformer: Transformer<Options> = {
     jsxPragma: 'h',
     jsxFragmentPragma: 'Fragment',
   },
-  getTransformer: () =>
-    Comlink.wrap<SucraseWorker>(new Worker('/transformer-sucrase.js'))
-      .transform,
+  getTransformer: () => {
+    const worker = Comlink.wrap<SucraseWorker>(
+      new Worker('/transformer-sucrase.js'),
+    )
+    return (code, opts) => worker.transform(code, opts)
+  },
 }

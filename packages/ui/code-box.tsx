@@ -23,17 +23,29 @@ interface Props {
   code: string
   onChange?: (code: string) => void
   disabled?: boolean
+  close?: () => void
 }
 
 const titleStyle = css`
   padding: 0.7rem 1rem;
   background: ${colors.bg1};
+  display: flex;
+  justify-content: space-between;
 `
 
-export const CodeBox = ({ code, onChange, title, disabled = false }: Props) => {
+export const CodeBox = ({
+  code,
+  onChange,
+  title,
+  disabled = false,
+  close,
+}: Props) => {
   return (
     <Card class={codeBoxStyle}>
-      <div class={titleStyle}>{title}</div>
+      <div class={titleStyle}>
+        <span>{title}</span>
+        {close && <button onClick={close}>x</button>}
+      </div>
       <textarea
         class={textareaStyle}
         spellcheck={false}

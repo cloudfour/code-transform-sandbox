@@ -20,7 +20,6 @@ const popupsWrapperStyle = css`
   justify-content: center;
   align-items: center;
   background: rgba(0, 0, 0, 0.2);
-  transition: all 0.1s ease;
   z-index: 1;
 `
 

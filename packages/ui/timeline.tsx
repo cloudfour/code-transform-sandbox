@@ -9,11 +9,6 @@ import clsx from 'clsx'
 import { useState } from 'preact/hooks'
 import { colors } from './colors'
 
-interface Props {
-  processor: Processor
-  onChange: (processor: Processor) => void
-}
-
 const newTransformerStyle = css`
   padding: 1.2rem;
   display: grid;
@@ -73,7 +68,43 @@ const spaceAfterTransformerStyle = css`
   }
 `
 
-export const Timeline = ({ processor, onChange }: Props) => {
+const NewTransformerPopup = ({
+  close,
+}: {
+  close: (transformer: Transformer<any>) => void
+}) => (
+  <div class={newTransformerStyle}>
+    <h1>Add a transformer</h1>
+    <ul>
+      {allTransformers.map((transformer) => {
+        return (
+          // eslint-disable-next-line caleb/react/jsx-key
+          <li>
+            <button
+              onClick={() => {
+                close(transformer)
+              }}
+            >{`${transformer.name} ${transformer.version}`}</button>
+          </li>
+        )
+      })}
+    </ul>
+  </div>
+)
+
+interface Props {
+  processor: Processor
+  onChange: (processor: Processor) => void
+  openSettings: (transformerIndex: number) => void
+  selectedTransformerIndex: number | null
+}
+
+export const Timeline = ({
+  processor,
+  onChange,
+  openSettings,
+  selectedTransformerIndex,
+}: Props) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const handleAddTransformer = (newTransformerIndex: number) => async (
     e: h.JSX.TargetedEvent<HTMLElement>,
@@ -81,25 +112,7 @@ export const Timeline = ({ processor, onChange }: Props) => {
     const newTransformer = await createPopup<Transformer<any> | undefined>({
       targetElement: e.currentTarget,
       render: (close) => {
-        return (
-          <div class={newTransformerStyle}>
-            <h1>Add a transformer</h1>
-            <ul>
-              {allTransformers.map((transformer) => {
-                return (
-                  // eslint-disable-next-line caleb/react/jsx-key
-                  <li>
-                    <button
-                      onClick={() => {
-                        close(transformer)
-                      }}
-                    >{`${transformer.name} ${transformer.version}`}</button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        )
+        return <NewTransformerPopup close={close} />
       },
     })
     if (!newTransformer) return
@@ -136,13 +149,17 @@ export const Timeline = ({ processor, onChange }: Props) => {
             style={{
               transform:
                 hoveredIndex === null
-                  ? null
+                  ? ''
                   : hoveredIndex < i
                   ? `translate(${(hoverTimelineGap - timelineGap) / 2}rem)`
                   : `translate(-${(hoverTimelineGap - timelineGap) / 2}rem)`,
             }}
           >
-            <TransformerButton transformer={transformer.transformer} />
+            <TransformerButton
+              hasSettingsOpen={i === selectedTransformerIndex}
+              transformer={transformer.transformer}
+              openSettings={() => openSettings(i)}
+            />
             <div
               class={spaceAfterTransformerStyle}
               onMouseEnter={handleHoverBetween(i)}
@@ -174,15 +191,29 @@ const transformerNameStyle = css`
   font-size: 1.2rem;
 `
 
+const transformerButtonActiveStyle = css`
+  background: ${colors.bg1};
+`
+
 const TransformerButton = ({
   transformer,
+  openSettings,
+  hasSettingsOpen,
 }: {
   transformer: Transformer<any>
+  openSettings: () => void
+  hasSettingsOpen: boolean
 }) => {
   return (
-    <Card as="button" class={transformerButtonStyle}>
+    <Card
+      as="button"
+      class={clsx(
+        transformerButtonStyle,
+        hasSettingsOpen && transformerButtonActiveStyle,
+      )}
+    >
       <div class={transformerNameStyle}>{transformer.name}</div>
-      <button>Settings</button>
+      <button onClick={openSettings}>Settings</button>
     </Card>
   )
 }

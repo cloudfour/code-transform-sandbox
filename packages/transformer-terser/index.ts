@@ -14,6 +14,10 @@ export const transformer: Transformer<MinifyOptions> = {
       unsafe: true,
     },
   },
-  getTransformer: () =>
-    Comlink.wrap<TerserWorker>(new Worker('/transformer-terser.js')).transform,
+  getTransformer: () => {
+    const worker = Comlink.wrap<TerserWorker>(
+      new Worker('/transformer-terser.js'),
+    )
+    return (code, opts) => worker.transform(code, opts)
+  },
 }

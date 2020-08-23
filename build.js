@@ -21,6 +21,8 @@ const customResolver = () => {
   return {
     name: 'custom-resolver',
     async resolveId(source, importer) {
+      if (source.startsWith('/transformer-'))
+        return { id: source, external: true }
       if (!allPackages.includes(source) || !importer) return
       const relative = path.join(
         path.relative(path.dirname(importer), packagesFolder),
@@ -62,7 +64,10 @@ const main = async () => {
             input: { [packageName]: `packages/${packageName}/transform` },
             plugins: [
               customResolver(),
-              nodeResolve({ extensions }),
+              nodeResolve({
+                extensions,
+                mainFields: ['browser', 'module', 'main'],
+              }),
               json(),
               // @ts-ignore
               babel.babel({

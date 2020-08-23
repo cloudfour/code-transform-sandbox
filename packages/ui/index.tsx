@@ -65,14 +65,25 @@ const App = () => {
   const [inputCode, setInputCode] = useState(initialCode)
   const [outputCode, setOutputCode] = useState('')
   const [processor, setProcessor] = useState(getProcessorFromUrl)
+  const [selectedTransformerIndex, setSelectedTransformerIndex] = useState<
+    number | null
+  >(null)
 
   useEffect(() => {
-    setOutputCode('')
+    let isDone = false
+    const clearIfIncomplete = () => {
+      if (!isDone) setOutputCode('')
+    }
+    const timeout = setTimeout(clearIfIncomplete, 70)
     const emitter = process(processor, inputCode)
     emitter.on('error', (error) => {
+      clearIfIncomplete()
       console.error('error happened in transformer', error)
     })
-    emitter.on('outputCode', setOutputCode)
+    emitter.on('outputCode', (code) => {
+      isDone = true
+      setOutputCode(code)
+    })
 
     history.replaceState(
       null,
@@ -86,16 +97,51 @@ const App = () => {
         }),
     )
 
-    return () => emitter.cancel()
+    return () => {
+      emitter.cancel()
+      clearTimeout(timeout)
+    }
   }, [inputCode, processor])
+
+  useEffect(() => {
+    setSelectedTransformerIndex(null)
+  }, [processor.transformers.length])
+
+  const selectedTransformer =
+    selectedTransformerIndex !== null &&
+    processor.transformers[selectedTransformerIndex]
 
   return (
     <div class={appStyle}>
       <div class={codeViewerStyle}>
         <CodeBox title="Input" code={initialCode} onChange={setInputCode} />
+        {selectedTransformer && (
+          <CodeBox
+            title={`Settings for ${selectedTransformer.transformer.name}`}
+            close={() => setSelectedTransformerIndex(null)}
+            code={JSON.stringify(selectedTransformer.options, null, 2)}
+            onChange={(code) => {
+              try {
+                const parsed = JSON.parse(code)
+                const clonedTransforms = processor.transformers.slice()
+                if (selectedTransformerIndex !== null)
+                  clonedTransforms[selectedTransformerIndex] = {
+                    ...selectedTransformer,
+                    options: parsed,
+                  }
+                setProcessor(createProcessor(clonedTransforms))
+              } catch (e) {}
+            }}
+          />
+        )}
         <CodeBox title="Output" code={outputCode} disabled />
       </div>
-      <Timeline processor={processor} onChange={setProcessor} />
+      <Timeline
+        processor={processor}
+        onChange={setProcessor}
+        openSettings={setSelectedTransformerIndex}
+        selectedTransformerIndex={selectedTransformerIndex}
+      />
       <PopupArea />
     </div>
   )

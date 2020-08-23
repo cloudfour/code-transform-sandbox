@@ -34,6 +34,7 @@
     "babel-plugin-const-enum": "^1.0.1",
     "babel-plugin-un-cjs": "^2.0.0",
     "comlink": "^4.3.0",
+    "esbuild-wasm": "^0.6.27",
     "eslint": "^7.6.0",
     "eslint-plugin-caleb": "^10.0.2",
     "linaria": "^2.0.0-rc.0",

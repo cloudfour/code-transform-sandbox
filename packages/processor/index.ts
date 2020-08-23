@@ -1,5 +1,5 @@
 import mitt, { Emitter, EventMap as MittEventMap } from 'mitt'
-import { ParsedError, Transformer, TransformFunction } from '../../transformer'
+import { ParsedError, Transformer } from '../../transformer'
 
 interface TransformerWithOptions<Options = {}> {
   transformer: Transformer<Options>
@@ -7,7 +7,7 @@ interface TransformerWithOptions<Options = {}> {
 }
 
 interface Processor {
-  readonly transformers: TransformerWithOptions[]
+  transformers: readonly Readonly<TransformerWithOptions>[]
 }
 
 type ImmutableProcessor = Readonly<Processor>
@@ -33,15 +33,17 @@ interface ActiveProcess extends Emitter<EventMap> {
   cancel(): void
 }
 
-const loadTransformer = <Options extends {}>(
+const runTransformer = async <Options extends {}>(
   transformer: Transformer<Options>,
+  code: string,
+  options: Options,
 ) => {
-  if (transformer.cachedTransformer) {
-    return transformer.cachedTransformer
+  let t = transformer.cachedTransformer
+  if (!t) {
+    t = await transformer.getTransformer()
+    transformer.cachedTransformer = t
   }
-  const transformerFunc = transformer.getTransformer()
-  transformer.cachedTransformer = transformerFunc
-  return transformerFunc
+  return t(code, options)
 }
 
 export const process = (
@@ -59,7 +61,7 @@ export const process = (
     for (let i = 0; i < processor.transformers.length; i++) {
       if (isCancelled) return
       const { transformer, options } = processor.transformers[i]
-      const result = await loadTransformer(transformer)(code, options)
+      const result = await runTransformer(transformer, code, options)
       if (isCancelled) return
       if ('error' in result) {
         emitter.emit('error', result.error)
