@@ -62,7 +62,6 @@ export const process = (
       if (isCancelled) return
       const { transformer, options } = processor.transformers[i]
       const result = await runTransformer(transformer, code, options)
-      if (isCancelled) return
       if ('error' in result) {
         emitter.emit('error', result.error)
         return

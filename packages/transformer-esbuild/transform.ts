@@ -7,7 +7,7 @@ export const transform: TransformFunction<TransformOptions> = async (
   options,
 ) => {
   const res = await (await esbuild).transform(input, options)
-  if (res.warnings) {
+  if (res.warnings.length > 0) {
     const error = res.warnings[0]
     if (error.location)
       return {

@@ -58,6 +58,7 @@ export const PopupArea = () => {
   }
 
   return (
+    // eslint-disable-next-line caleb/jsx-a11y/click-events-have-key-events, caleb/jsx-a11y/no-static-element-interactions
     <div onClick={() => close(undefined)} class={popupsWrapperStyle}>
       <Card class={popupStyle} reff={positionPopup(currentPopup)}>
         {currentPopup.render(close)}

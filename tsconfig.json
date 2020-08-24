@@ -21,5 +21,11 @@
       "/transformer-*.js": ["transformer-*/transform"]
     }
   },
-  "include": ["*.js", "packages/**/*.tsx", "packages/**/*.ts", "types.d.ts", "*.ts"]
+  "include": [
+    "*.js",
+    "packages/**/*.tsx",
+    "packages/**/*.ts",
+    "types.d.ts",
+    "*.ts"
+  ]
 }
