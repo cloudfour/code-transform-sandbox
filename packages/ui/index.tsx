@@ -14,6 +14,10 @@ import {
 import { PopupArea } from './popup'
 import { decode, encode } from 'qss'
 import { allTransformers } from './transformers-list'
+import {
+  cancelIdleCallback,
+  requestIdleCallback,
+} from './request-idle-callback'
 
 const root = document.querySelector('.root')
 
@@ -28,17 +32,21 @@ const appStyle = css`
 `
 
 const codeViewerStyle = css`
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 2rem;
   padding: 2rem 2rem 0;
-
-  & * {
-    flex-grow: 1;
-  }
 `
 
-const initialCode = `// enter your code here
+const qs = decode<{ transformer?: unknown; code?: unknown }>(
+  location.search.slice(1),
+)
+
+const initialCode =
+  typeof qs.code === 'string'
+    ? atob(qs.code)
+    : `// enter your code here
 
 import { h, render } from 'preact'
 
@@ -46,7 +54,6 @@ render(foo, document.body)
 `
 
 const getProcessorFromUrl = () => {
-  const qs = decode<{ transformer?: any }>(location.search.slice(1))
   if (!qs.transformer) return createProcessor()
   const transformers = Array.isArray(qs.transformer)
     ? qs.transformer
@@ -70,10 +77,12 @@ const getProcessorFromUrl = () => {
   return createProcessor(foundTransformers)
 }
 
+const initialProcessor = getProcessorFromUrl()
+
 const App = () => {
   const [inputCode, setInputCode] = useState(initialCode)
   const [outputCode, setOutputCode] = useState('')
-  const [processor, setProcessor] = useState(getProcessorFromUrl)
+  const [processor, setProcessor] = useState(initialProcessor)
   const [selectedTransformerIndex, setSelectedTransformerIndex] = useState<
     number | null
   >(null)
@@ -93,21 +102,23 @@ const App = () => {
       isDone = true
       setOutputCode(code)
     })
-
-    history.replaceState(
-      null,
-      '',
-      '?' +
-        encode({
-          transformer: processor.transformers.map(
-            ({ transformer: { name, version }, options }) =>
-              JSON.stringify({ name, version, options }),
-          ),
-        }),
-    )
-
+    const idleHandle = requestIdleCallback(() => {
+      history.replaceState(
+        null,
+        '',
+        '?' +
+          encode({
+            transformer: processor.transformers.map(
+              ({ transformer: { name, version }, options }) =>
+                JSON.stringify({ name, version, options }),
+            ),
+            code: btoa(inputCode),
+          }),
+      )
+    })
     return () => {
       emitter.cancel()
+      cancelIdleCallback(idleHandle)
       clearTimeout(timeout)
     }
   }, [inputCode, processor])
@@ -136,6 +147,7 @@ const App = () => {
                 if (selectedTransformerIndex !== null)
                   clonedTransforms[selectedTransformerIndex] = {
                     ...selectedTransformer,
+                    cache: createTransformCache(),
                     options: parsed,
                   }
                 setProcessor(createProcessor(clonedTransforms))
@@ -143,7 +155,7 @@ const App = () => {
             }}
           />
         )}
-        <CodeBox title="Output" code={outputCode} disabled />
+        <CodeBox title="Output" code={outputCode} readonly />
       </div>
       <Timeline
         processor={processor}

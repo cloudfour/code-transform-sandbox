@@ -16,13 +16,16 @@ const textareaStyle = css`
   padding: 2rem;
   resize: none;
   outline: none;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  margin: 0;
 `
 
 interface Props {
   title: string
   code: string
   onChange?: (code: string) => void
-  disabled?: boolean
+  readonly?: boolean
   close?: () => void
 }
 
@@ -37,7 +40,7 @@ export const CodeBox = ({
   code,
   onChange,
   title,
-  disabled = false,
+  readonly = false,
   close,
 }: Props) => {
   return (
@@ -46,36 +49,41 @@ export const CodeBox = ({
         <span>{title}</span>
         {close && <button onClick={close}>x</button>}
       </div>
-      <textarea
-        class={textareaStyle}
-        spellcheck={false}
-        disabled={disabled}
-        onKeyDown={(e) => {
-          const el = e.currentTarget
-          if (e.key === 'Escape') {
-            // TODO: handle better
-            el.blur()
-          } else if (e.key === 'Tab') {
-            // Make tab key insert two spaces
-            e.preventDefault()
-            const start = el.selectionStart
-            const end = el.selectionEnd
-            // something is selected, ignore
-            // TODO: indent selected lines?
-            if (start !== end) return
-            const tab = '  '
-            el.value = el.value.slice(0, start) + tab + el.value.slice(end)
+      {readonly ? (
+        <pre class={textareaStyle}>{code}</pre>
+      ) : (
+        <textarea
+          class={textareaStyle}
+          spellcheck={false}
+          autocorrect="off"
+          autocomplete="off"
+          onKeyDown={(e) => {
+            const el = e.currentTarget
+            if (e.key === 'Escape') {
+              // TODO: handle better
+              el.blur()
+            } else if (e.key === 'Tab') {
+              // Make tab key insert two spaces
+              e.preventDefault()
+              const start = el.selectionStart
+              const end = el.selectionEnd
+              // something is selected, ignore
+              // TODO: indent selected lines?
+              if (start !== end) return
+              const tab = '  '
+              el.value = el.value.slice(0, start) + tab + el.value.slice(end)
 
-            el.dispatchEvent(new InputEvent('input'))
+              el.dispatchEvent(new InputEvent('input'))
 
-            el.selectionEnd = end + tab.length
-          }
-        }}
-        onInput={(e) => {
-          onChange?.(e.currentTarget.value)
-        }}
-        value={code}
-      />
+              el.selectionEnd = end + tab.length
+            }
+          }}
+          onInput={(e) => {
+            onChange?.(e.currentTarget.value)
+          }}
+          value={code}
+        />
+      )}
     </Card>
   )
 }
