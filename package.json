@@ -28,11 +28,11 @@
     "@babel/plugin-transform-react-jsx": "7.10.4",
     "@babel/preset-env": "7.11.0",
     "@babel/preset-typescript": "7.10.4",
-    "@calebeby/esbuild-wasm": "^0.6.27",
+    "@calebeby/esbuild-wasm": "0.6.27",
     "@rollup/plugin-babel": "5.2.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",
-    "@rollup/plugin-url": "^5.0.1",
+    "@rollup/plugin-url": "5.0.1",
     "babel-plugin-const-enum": "1.0.1",
     "babel-plugin-un-cjs": "2.2.0",
     "comlink": "4.3.0",
@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "clsx": "1.1.1",
-    "flru": "^1.0.2",
+    "flru": "1.0.2",
     "mitt": "2.1.0",
     "preact": "10.4.7"
   }
