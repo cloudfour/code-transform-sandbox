@@ -1,5 +1,5 @@
 import { Transformer } from '../../transformer'
-import { TransformOptions } from 'esbuild-wasm'
+import { TransformOptions } from '@calebeby/esbuild-wasm'
 
 export const transformer: Transformer<TransformOptions> = {
   name: 'esbuild',

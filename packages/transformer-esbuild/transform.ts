@@ -2,9 +2,9 @@ import {
   startService,
   TransformOptions,
   TransformResult as EsbuildResult,
-} from 'esbuild-wasm'
+} from '@calebeby/esbuild-wasm'
 import { TransformFunction } from '../../transformer'
-import esbuildWasmUrl from 'esbuild-wasm/esbuild.wasm'
+import esbuildWasmUrl from '@calebeby/esbuild-wasm/esbuild.wasm'
 
 const esbuild = startService({ wasmURL: esbuildWasmUrl })
 export const transform: TransformFunction<TransformOptions> = async (
