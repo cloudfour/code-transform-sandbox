@@ -1,5 +1,5 @@
 import { h } from 'preact'
-import { createProcessor, Processor } from 'processor'
+import { createProcessor, createTransformCache, Processor } from 'processor'
 import { Card } from './card'
 import { Transformer } from '../../transformer'
 import { createPopup } from './popup'
@@ -120,6 +120,7 @@ export const Timeline = ({
     newTransformers.splice(newTransformerIndex, 0, {
       transformer: newTransformer,
       options: newTransformer.defaultOptions,
+      cache: createTransformCache(),
     })
     onChange(createProcessor(newTransformers))
   }

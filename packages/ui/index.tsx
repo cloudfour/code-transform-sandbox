@@ -5,7 +5,12 @@ import { CodeBox } from './code-box'
 import { colors, textFonts } from './colors'
 import { useEffect, useState } from 'preact/hooks'
 import { Timeline } from './timeline'
-import { createProcessor, process } from 'processor'
+import {
+  createProcessor,
+  createTransformCache,
+  process,
+  TransformerInstance,
+} from 'processor'
 import { PopupArea } from './popup'
 import { decode, encode } from 'qss'
 import { allTransformers } from './transformers-list'
@@ -47,7 +52,7 @@ const getProcessorFromUrl = () => {
     ? qs.transformer
     : [qs.transformer]
   const foundTransformers = transformers
-    .map((jsonTransformer) => {
+    .map((jsonTransformer): TransformerInstance<any> | null => {
       const t = JSON.parse(jsonTransformer)
       const transformer = allTransformers.find(
         (fullTransformer) =>
@@ -55,7 +60,11 @@ const getProcessorFromUrl = () => {
           fullTransformer.version === t.version,
       )
       if (!transformer) return null
-      return { transformer, options: t.options || transformer.defaultOptions }
+      return {
+        transformer,
+        options: t.options || transformer.defaultOptions,
+        cache: createTransformCache(),
+      }
     })
     .filter((t): t is Exclude<typeof t, null> => t !== null)
   return createProcessor(foundTransformers)

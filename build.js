@@ -8,6 +8,7 @@ import * as path from 'path'
 import * as rollup from 'rollup'
 import json from '@rollup/plugin-json'
 import { terser } from 'rollup-plugin-terser'
+import url from '@rollup/plugin-url'
 
 import babelConfig from './babel.config.cjs'
 
@@ -63,11 +64,14 @@ const main = async () => {
         : {
             input: { [packageName]: `packages/${packageName}/transform` },
             plugins: [
-              customResolver(),
-              nodeResolve({
-                extensions,
-                mainFields: ['browser', 'module', 'main'],
+              url({
+                // all files should be copied to dist rather than inlined
+                limit: 0,
+                publicPath: '/',
+                include: [/\.wasm$/],
               }),
+              customResolver(),
+              nodeResolve({ extensions }),
               json(),
               // @ts-ignore
               babel.babel({

@@ -16,6 +16,17 @@ declare module 'rollup-plugin-css-only' {
   export default plugin
 }
 
+declare module '@rollup/plugin-url' {
+  import { Plugin } from 'rollup'
+  interface Options {
+    limit?: number
+    publicPath?: string
+    include: string | RegExp | (string | RegExp)[]
+  }
+  const plugin: (opts?: Options) => Plugin
+  export default plugin
+}
+
 declare module 'mri' {
   type Args = string[]
   interface Opts {
@@ -93,3 +104,8 @@ declare module 'mitt' {
 }
 
 declare const Comlink: typeof import('comlink')
+
+declare module '*.wasm' {
+  const outputPath: string
+  export default outputPath
+}

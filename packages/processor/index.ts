@@ -1,13 +1,15 @@
 import mitt, { Emitter, EventMap as MittEventMap } from 'mitt'
-import { ParsedError, Transformer } from '../../transformer'
+import { ParsedError, Transformer, TransformResult } from '../../transformer'
+import flru, { flruCache as FlruCache } from 'flru'
 
-interface TransformerWithOptions<Options = {}> {
+export interface TransformerInstance<Options = {}> {
   transformer: Transformer<Options>
   options: Options
+  cache: FlruCache<TransformResult>
 }
 
 interface Processor {
-  transformers: readonly Readonly<TransformerWithOptions>[]
+  transformers: readonly Readonly<TransformerInstance>[]
 }
 
 type ImmutableProcessor = Readonly<Processor>
@@ -15,7 +17,7 @@ type ImmutableProcessor = Readonly<Processor>
 export { ImmutableProcessor as Processor }
 
 export const createProcessor = (
-  transformers: TransformerWithOptions[] = [],
+  transformers: TransformerInstance[] = [],
 ): ImmutableProcessor => {
   const processor: Processor = {
     transformers,
@@ -23,6 +25,8 @@ export const createProcessor = (
 
   return processor
 }
+
+export const createTransformCache = () => flru<TransformResult>(10)
 
 interface EventMap extends MittEventMap {
   outputCode: string
@@ -34,16 +38,19 @@ interface ActiveProcess extends Emitter<EventMap> {
 }
 
 const runTransformer = async <Options extends {}>(
-  transformer: Transformer<Options>,
+  { transformer, options, cache }: TransformerInstance<Options>,
   code: string,
-  options: Options,
 ) => {
+  const cached = cache.get(code)
+  if (cached) return cached
   let t = transformer.cachedTransformer
   if (!t) {
     t = await transformer.getTransformer()
     transformer.cachedTransformer = t
   }
-  return t(code, options)
+  const transformResult = await t(code, options)
+  cache.set(code, transformResult)
+  return transformResult
 }
 
 export const process = (
@@ -60,8 +67,8 @@ export const process = (
     let code = inputCode
     for (let i = 0; i < processor.transformers.length; i++) {
       if (isCancelled) return
-      const { transformer, options } = processor.transformers[i]
-      const result = await runTransformer(transformer, code, options)
+      const transformerInstance = processor.transformers[i]
+      const result = await runTransformer(transformerInstance, code)
       if ('error' in result) {
         emitter.emit('error', result.error)
         return
