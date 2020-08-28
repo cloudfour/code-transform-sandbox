@@ -43,7 +43,7 @@
     "mri": "1.1.6",
     "prettier": "2.1.1",
     "qss": "2.0.3",
-    "rollup": "2.26.5",
+    "rollup": "2.26.7",
     "rollup-plugin-css-only": "2.1.0",
     "rollup-plugin-terser": "7.0.0",
     "sirv-cli": "1.0.6",
