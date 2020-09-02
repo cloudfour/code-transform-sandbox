@@ -24,9 +24,9 @@
   },
   "homepage": "https://github.com/calebeby/code-transform-sandbox#readme",
   "devDependencies": {
-    "@babel/core": "7.11.4",
+    "@babel/core": "7.11.5",
     "@babel/plugin-transform-react-jsx": "7.10.4",
-    "@babel/preset-env": "7.11.0",
+    "@babel/preset-env": "7.11.5",
     "@babel/preset-typescript": "7.10.4",
     "@calebeby/esbuild-wasm": "0.6.27",
     "@rollup/plugin-babel": "5.2.0",
