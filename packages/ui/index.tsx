@@ -9,6 +9,8 @@ import {
   createProcessor,
   createTransformCache,
   process,
+  Processor,
+  TransformerError,
   TransformerInstance,
 } from 'processor'
 import { PopupArea } from './popup'
@@ -37,6 +39,7 @@ const codeViewerStyle = css`
   grid-auto-columns: 1fr;
   gap: 2rem;
   padding: 2rem 2rem 0;
+  min-height: 0;
 `
 
 const qs = decode<{ transformer?: unknown; code?: unknown }>(
@@ -68,6 +71,7 @@ const getProcessorFromUrl = () => {
       )
       if (!transformer) return null
       return {
+        isEnabled: t.isEnabled ?? true,
         transformer,
         options: t.options || transformer.defaultOptions,
         cache: createTransformCache(),
@@ -86,8 +90,12 @@ const App = () => {
   const [selectedTransformerIndex, setSelectedTransformerIndex] = useState<
     number | null
   >(null)
+  const [error, setError] = useState<
+    null | (TransformerError & { inputCode?: string })
+  >(null)
 
   useEffect(() => {
+    setError(null)
     let isDone = false
     const clearIfIncomplete = () => {
       if (!isDone) setOutputCode('')
@@ -96,7 +104,12 @@ const App = () => {
     const emitter = process(processor, inputCode)
     emitter.on('error', (error) => {
       clearIfIncomplete()
-      console.error('error happened in transformer', error)
+      setError({
+        ...error,
+        inputCode: emitter.getCodeBeforeTransformerIndex(
+          error.transformerIndex,
+        ),
+      })
     })
     emitter.on('outputCode', (code) => {
       isDone = true
@@ -109,8 +122,8 @@ const App = () => {
         '?' +
           encode({
             transformer: processor.transformers.map(
-              ({ transformer: { name, version }, options }) =>
-                JSON.stringify({ name, version, options }),
+              ({ transformer: { name, version }, options, isEnabled }) =>
+                JSON.stringify({ name, version, options, isEnabled }),
             ),
             code: btoa(inputCode),
           }),
@@ -155,17 +168,74 @@ const App = () => {
             }}
           />
         )}
-        <CodeBox title="Output" code={outputCode} readonly />
+        {error ? (
+          <CodeBox
+            title="Error"
+            code={formatError(error, processor)}
+            readonly
+          />
+        ) : (
+          <CodeBox title="Output" code={outputCode} readonly />
+        )}
       </div>
-      <Timeline
-        processor={processor}
-        onChange={setProcessor}
-        openSettings={setSelectedTransformerIndex}
-        selectedTransformerIndex={selectedTransformerIndex}
-      />
+      <div
+        class={css`
+          display: flex;
+          overflow-x: auto;
+          justify-content: center;
+          padding: 2rem;
+        `}
+      >
+        <Timeline
+          processor={processor}
+          onChange={setProcessor}
+          openSettings={setSelectedTransformerIndex}
+          selectedTransformerIndex={selectedTransformerIndex}
+          error={error}
+        />
+      </div>
       <PopupArea />
     </div>
   )
 }
 
 if (root) render(<App />, root)
+
+const formatError = (
+  {
+    error,
+    transformerIndex,
+    inputCode,
+  }: TransformerError & { inputCode?: string },
+  processor: Processor,
+) => {
+  const transformer = processor.transformers[transformerIndex] as
+    | Readonly<TransformerInstance>
+    | undefined
+  if (!transformer) return ''
+  let out = `Error in ${transformer.transformer.name}: `
+  if ('line' in error && 'column' in error) {
+    out += `${error.message} (${error.line}:${error.column})`
+    if (inputCode) {
+      const lines = inputCode.split('\n')
+      const codeFrameStartLine = Math.max(error.line - 3, 1)
+      const codeFrameEndLine = Math.min(error.line + 3, lines.length)
+      const numberColumns = codeFrameEndLine.toString().length + 1
+      out += '\n'
+      for (
+        let lineNum = codeFrameStartLine;
+        lineNum <= codeFrameEndLine;
+        lineNum++
+      ) {
+        out += `
+${lineNum.toString().padEnd(numberColumns)}| ${lines[lineNum - 1]}`
+        if (lineNum === error.line) {
+          out += `\n${' '.repeat(numberColumns + 2 + error.column)}^`
+        }
+      }
+    }
+  } else {
+    out += `\n${error}`
+  }
+  return out
+}

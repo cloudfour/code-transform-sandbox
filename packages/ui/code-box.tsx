@@ -17,8 +17,10 @@ const textareaStyle = css`
   resize: none;
   outline: none;
   font-size: 0.9rem;
-  white-space: pre-wrap;
+  white-space: pre;
   margin: 0;
+  min-width: 0;
+  overflow: auto;
 `
 
 interface Props {

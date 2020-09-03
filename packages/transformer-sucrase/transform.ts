@@ -14,6 +14,16 @@ const sucraseWorker: SucraseWorker = {
       const result = transform(input, options)
       return { code: result.code }
     } catch (error) {
+      if (error.loc && error.message) {
+        return {
+          error: {
+            message: error.message.replace(/\s*\(\d*:\d*\)$/, ''),
+            line: error.loc.line,
+            // For some reason sucrase columns are always off by one
+            column: error.loc.column - 1,
+          },
+        }
+      }
       return { error }
     }
   },

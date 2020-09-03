@@ -1,5 +1,10 @@
 import { h } from 'preact'
-import { createProcessor, createTransformCache, Processor } from 'processor'
+import {
+  createProcessor,
+  createTransformCache,
+  Processor,
+  TransformerError,
+} from 'processor'
 import { Card } from './card'
 import { Transformer } from '../../transformer'
 import { createPopup } from './popup'
@@ -7,7 +12,7 @@ import { css } from 'linaria'
 import { allTransformers } from './transformers-list'
 import clsx from 'clsx'
 import { useState } from 'preact/hooks'
-import { colors } from './colors'
+import { colors, textFonts } from './colors'
 
 const newTransformerStyle = css`
   padding: 1.2rem;
@@ -23,25 +28,24 @@ const timelineGap = 4
 const hoverTimelineGap = 8
 
 const timelineStyle = css`
-  padding: 0;
   margin: 0;
-  overflow-x: auto;
-  display: flex;
+  padding: 0;
+  display: grid;
+  grid-auto-columns: 10rem;
+  grid-auto-flow: column;
+  grid-gap: ${timelineGap}rem;
   justify-content: center;
   z-index: 1;
-  padding: 2rem;
+  position: relative;
+  min-width: 100%;
 `
 
 const transformerStyle = css`
   list-style-type: none;
   position: relative;
   overflow: visible;
-  width: 10rem;
   background: ${colors.bg};
-
-  &:not(:last-child) {
-    margin-right: ${timelineGap}rem;
-  }
+  transition: transform 0.2s ease;
 `
 
 const spaceAfterTransformerStyle = css`
@@ -51,20 +55,22 @@ const spaceAfterTransformerStyle = css`
   height: 100%;
   left: 100%;
   width: ${timelineGap}rem;
-  transform-origin: left center;
+  /* transform-origin: left center; */
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: transform 0.2s ease;
 
   &:hover {
-    transform: scaleX(${hoverTimelineGap / timelineGap});
+    transform: translateX(${(hoverTimelineGap - timelineGap) / 2}rem);
+    /* transform: scaleX(${hoverTimelineGap / timelineGap}); */
     & > * {
-      transform: scale(${timelineGap / hoverTimelineGap}, 1);
+      /* transform: scale(${timelineGap / hoverTimelineGap}, 1); */
     }
   }
 
   & > * {
-    transform: scale(1);
+    /* transform: scale(1); */
   }
 `
 
@@ -97,6 +103,7 @@ interface Props {
   onChange: (processor: Processor) => void
   openSettings: (transformerIndex: number) => void
   selectedTransformerIndex: number | null
+  error: TransformerError | null
 }
 
 export const Timeline = ({
@@ -104,6 +111,7 @@ export const Timeline = ({
   onChange,
   openSettings,
   selectedTransformerIndex,
+  error,
 }: Props) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const handleAddTransformer = (newTransformerIndex: number) => async (
@@ -118,6 +126,7 @@ export const Timeline = ({
     if (!newTransformer) return
     const newTransformers = processor.transformers.slice()
     newTransformers.splice(newTransformerIndex, 0, {
+      isEnabled: true,
       transformer: newTransformer,
       options: newTransformer.defaultOptions,
       cache: createTransformCache(),
@@ -136,8 +145,49 @@ export const Timeline = ({
     }
   }
 
+  const removeTransformer = (i: number) => {
+    const newTransformers = processor.transformers.slice()
+    newTransformers.splice(i, 1)
+    onChange(createProcessor(newTransformers))
+  }
+
+  const toggleEnabled = (i: number) => {
+    const newTransformers = processor.transformers.slice()
+    const existingTransformer = processor.transformers[i]
+    newTransformers[i] = {
+      ...existingTransformer,
+      isEnabled: !existingTransformer.isEnabled,
+    }
+    onChange(createProcessor(newTransformers))
+  }
+
   if (processor.transformers.length === 0) {
-    return <button onClick={handleAddTransformer(0)}>add a transformer</button>
+    return (
+      <div class={timelineStyle}>
+        <button
+          class={css`
+            padding: 1rem;
+            box-shadow: 2px 2px 19px 2px black;
+            cursor: pointer;
+            border: none;
+            border-radius: 0.5rem;
+            color: ${colors.fg};
+            background: ${colors.bg};
+            font-family: ${textFonts};
+            font-size: 1.2rem;
+            transition: background-color 0.2s ease;
+
+            &:hover,
+            &:focus {
+              background: ${colors.bg1};
+            }
+          `}
+          onClick={handleAddTransformer(0)}
+        >
+          Add a transformer
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -146,7 +196,7 @@ export const Timeline = ({
         return (
           // eslint-disable-next-line caleb/react/jsx-key
           <li
-            class={clsx(transformerStyle)}
+            class={transformerStyle}
             style={{
               transform:
                 hoveredIndex === null
@@ -156,10 +206,14 @@ export const Timeline = ({
                   : `translate(-${(hoverTimelineGap - timelineGap) / 2}rem)`,
             }}
           >
-            <TransformerButton
+            <TransformerCard
               hasSettingsOpen={i === selectedTransformerIndex}
+              remove={() => removeTransformer(i)}
               transformer={transformer.transformer}
+              toggleEnabled={() => toggleEnabled(i)}
               openSettings={() => openSettings(i)}
+              isEnabled={transformer.isEnabled}
+              hasError={i === error?.transformerIndex}
             />
             <div
               class={spaceAfterTransformerStyle}
@@ -167,7 +221,7 @@ export const Timeline = ({
               onMouseLeave={handleHoverBetween(i)}
             >
               <button onClick={handleAddTransformer(i + 1)}>
-                add a transformer after
+                {`add a transformer after ${transformer.transformer.name}`}
               </button>
             </div>
           </li>
@@ -177,7 +231,7 @@ export const Timeline = ({
   )
 }
 
-const transformerButtonStyle = css`
+const transformerCardStyle = css`
   border: none;
   background: inherit;
   height: 100%;
@@ -192,29 +246,65 @@ const transformerNameStyle = css`
   font-size: 1.2rem;
 `
 
-const transformerButtonActiveStyle = css`
+const transformerCardActiveStyle = css`
   background: ${colors.bg1};
 `
 
-const TransformerButton = ({
+const transformerCardLoadingStyle = css`
+  & > * {
+    opacity: 0.8;
+  }
+`
+
+const transformerCardErrorStyle = css`
+  background: ${colors.red};
+  color: ${colors.bg};
+`
+
+const transformerCardDisabledStyle = css`
+  background: black;
+  & > * {
+    opacity: 0.6;
+  }
+  & > .${transformerNameStyle} {
+    text-decoration: line-through;
+  }
+`
+
+const TransformerCard = ({
   transformer,
   openSettings,
+  remove,
+  toggleEnabled,
+  isEnabled,
   hasSettingsOpen,
+  hasError,
 }: {
   transformer: Transformer<any>
   openSettings: () => void
+  remove: () => void
+  toggleEnabled: () => void
+  isEnabled: boolean
+  hasError: boolean
   hasSettingsOpen: boolean
 }) => {
   return (
     <Card
       as="button"
       class={clsx(
-        transformerButtonStyle,
-        hasSettingsOpen && transformerButtonActiveStyle,
+        transformerCardStyle,
+        hasSettingsOpen && transformerCardActiveStyle,
+        !isEnabled && transformerCardDisabledStyle,
+        !transformer.cachedTransformer && transformerCardLoadingStyle,
+        hasError && transformerCardErrorStyle,
       )}
     >
       <div class={transformerNameStyle}>{transformer.name}</div>
       <button onClick={openSettings}>Settings</button>
+      <button onClick={remove}>Remove</button>
+      <button onClick={toggleEnabled}>
+        {isEnabled ? 'Disable' : 'Enable'}
+      </button>
     </Card>
   )
 }

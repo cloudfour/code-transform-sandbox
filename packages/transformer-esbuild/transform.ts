@@ -15,7 +15,17 @@ export const transform: TransformFunction<TransformOptions> = async (
   try {
     res = await (await esbuild).transform(input, options)
   } catch (error) {
-    // TODO: error.errors has location info, use it
+    if (error.errors) {
+      const err = error.errors[0]
+      if (err.location)
+        return {
+          error: {
+            message: err.text,
+            line: err.location.line,
+            column: err.location.column,
+          },
+        }
+    }
     return { error }
   }
   if (res.warnings.length > 0) {

@@ -2,6 +2,7 @@ export const colors = {
   bg: '#282828',
   bg1: '#3c3836',
   fg: '#ebdbb2',
+  red: '#cc241d',
 }
 
 export const codeFonts =

@@ -6,6 +6,7 @@ export interface TransformerInstance<Options = {}> {
   transformer: Transformer<Options>
   options: Options
   cache: FlruCache<TransformResult>
+  isEnabled: boolean
 }
 
 interface Processor {
@@ -30,17 +31,26 @@ export const createTransformCache = () => flru<TransformResult>(10)
 
 interface EventMap extends MittEventMap {
   outputCode: string
-  error: ParsedError | Error
+  error: TransformerError
 }
 
 interface ActiveProcess extends Emitter<EventMap> {
   cancel(): void
+  getCodeBeforeTransformerIndex: (
+    transformerIndex: number,
+  ) => string | undefined
+}
+
+export interface TransformerError {
+  error: ParsedError | Error
+  transformerIndex: number
 }
 
 const runTransformer = async <Options extends {}>(
-  { transformer, options, cache }: TransformerInstance<Options>,
+  { transformer, options, cache, isEnabled }: TransformerInstance<Options>,
   code: string,
 ) => {
+  if (!isEnabled) return { code }
   const cached = cache.get(code)
   if (cached) return cached
   let t = transformer.cachedTransformer
@@ -63,6 +73,12 @@ export const process = (
   }
   const emitter = mitt<EventMap>()
 
+  /**
+   * The code used as the input for each transformer.
+   * The code at an index is the code passed into that transformer index
+   */
+  const inputCodes: string[] = [inputCode]
+
   Promise.resolve().then(async () => {
     let code = inputCode
     for (let i = 0; i < processor.transformers.length; i++) {
@@ -70,16 +86,21 @@ export const process = (
       const transformerInstance = processor.transformers[i]
       const result = await runTransformer(transformerInstance, code)
       if ('error' in result) {
-        emitter.emit('error', result.error)
+        emitter.emit('error', { error: result.error, transformerIndex: i })
         return
       }
       code = result.code
+      inputCodes[i + 1] = code
     }
     emitter.emit('outputCode', code)
   })
 
+  const getCodeBeforeTransformerIndex = (transformerIndex: number) =>
+    inputCodes[transformerIndex]
+
   return {
     ...emitter,
     cancel,
+    getCodeBeforeTransformerIndex,
   }
 }
