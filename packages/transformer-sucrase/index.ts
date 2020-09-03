@@ -7,7 +7,7 @@ export const transformer: Transformer<Options> = {
   name: 'Sucrase',
   version: '3.15.0',
   defaultOptions: {
-    transforms: ['typescript', 'jsx', 'imports'],
+    transforms: ['typescript', 'jsx'],
     production: true,
     jsxPragma: 'h',
     jsxFragmentPragma: 'Fragment',
