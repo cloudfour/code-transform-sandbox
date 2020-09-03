@@ -10,7 +10,8 @@
     "type": "tsc",
     "type:watch": "npx tsc --watch",
     "build": "node build.js",
-    "build:watch": "node build.js --watch"
+    "build:watch": "node build.js --watch",
+    "netlify": "node build.js ui transformer-esbuild transformer-terser transformer-sucrase"
   },
   "repository": {
     "type": "git",
