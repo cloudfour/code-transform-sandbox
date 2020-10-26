@@ -40,7 +40,7 @@
     "esbuild-wasm": "0.6.28",
     "eslint": "7.8.1",
     "eslint-plugin-caleb": "11.0.0",
-    "linaria": "2.0.0-rc.1",
+    "linaria": "2.0.0",
     "mri": "1.1.6",
     "prettier": "2.1.1",
     "qss": "2.0.3",
