@@ -32,7 +32,7 @@
     "@calebeby/esbuild-wasm": "0.6.27",
     "@rollup/plugin-babel": "5.2.0",
     "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-node-resolve": "10.0.0",
     "@rollup/plugin-url": "5.0.1",
     "babel-plugin-const-enum": "1.0.1",
     "babel-plugin-un-cjs": "2.2.0",
